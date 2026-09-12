@@ -10,10 +10,10 @@ namespace {
 void show(const std::wstring_view message, const UINT flags) noexcept {
     try {
         const std::wstring text(message);
-        MessageBoxW(nullptr, text.c_str(), L"D2SteamFix", MB_OK | flags | MB_SETFOREGROUND);
+        MessageBoxW(nullptr, text.c_str(), L"MS2SteamFix", MB_OK | flags | MB_SETFOREGROUND);
     } catch (...) {
-        MessageBoxW(nullptr, L"D2SteamFix could not format this message.",
-                    L"D2SteamFix", MB_OK | flags | MB_SETFOREGROUND);
+        MessageBoxW(nullptr, L"MS2SteamFix could not format this message.",
+                    L"MS2SteamFix", MB_OK | flags | MB_SETFOREGROUND);
     }
 }
 

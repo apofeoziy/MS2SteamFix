@@ -129,8 +129,8 @@ fs::path image_path(const HANDLE process) {
 std::vector<std::pair<DWORD, std::wstring>> matching_in_dir(const fs::path& directory) {
     std::vector<std::pair<DWORD, std::wstring>> result;
     for (const ProcessInfo& item : snapshot()) {
-        if (!process_name_is(item.name, L"destiny2launcher.exe") &&
-            !process_name_is(item.name, L"destiny2.exe"))
+        if (!process_name_is(item.name, L"MarathonLauncher.exe") &&
+            !process_name_is(item.name, L"Marathon.exe"))
             continue;
         try {
             const UniqueHandle handle = open_query(item.pid);
@@ -143,7 +143,7 @@ std::vector<std::pair<DWORD, std::wstring>> matching_in_dir(const fs::path& dire
                 result.emplace_back(item.pid, item.name);
             }
         } catch (const std::exception& error) {
-            throw std::runtime_error("could not verify existing Destiny process candidate: pid=" +
+            throw std::runtime_error("could not verify existing Marathon process candidate: pid=" +
                                      std::to_string(item.pid) + ", name=" + narrow(item.name) +
                                      ": " + error.what());
         }
@@ -151,14 +151,14 @@ std::vector<std::pair<DWORD, std::wstring>> matching_in_dir(const fs::path& dire
     return result;
 }
 
-void wait_for_destiny_quiescence(const Logger& log) {
+void wait_for_marathon_quiescence(const Logger& log) {
     constexpr auto clean_interval = std::chrono::seconds(30);
     std::optional<std::chrono::steady_clock::time_point> clear_since;
     for (;;) {
         std::optional<ProcessInfo> candidate;
         for (const ProcessInfo& item : snapshot()) {
-            if (process_name_is(item.name, L"destiny2launcher.exe") ||
-                process_name_is(item.name, L"destiny2.exe")) {
+            if (process_name_is(item.name, L"MarathonLauncher.exe") ||
+                process_name_is(item.name, L"Marathon.exe")) {
                 candidate = item;
                 break;
             }
@@ -166,15 +166,15 @@ void wait_for_destiny_quiescence(const Logger& log) {
         const auto now = std::chrono::steady_clock::now();
         if (candidate) {
             throw std::runtime_error(
-                "a named Destiny process is still running; close it and retry: pid=" +
+                "a named Marathon process is still running; close it and retry: pid=" +
                 std::to_string(candidate->pid) + ", name=" + narrow(candidate->name));
         } else {
             if (!clear_since) {
                 clear_since = now;
-                log.info("pending ACL recovery found no named Destiny process; beginning 30-second "
+                log.info("pending ACL recovery found no named Marathon process; beginning 30-second "
                          "safety interval");
             } else if (now - *clear_since >= clean_interval) {
-                log.info("pending ACL recovery confirmed Destiny process quiescence");
+                log.info("pending ACL recovery confirmed Marathon process quiescence");
                 return;
             }
         }
@@ -246,8 +246,8 @@ std::optional<int> monitor(const HANDLE child, const DWORD child_pid, const fs::
                 bool uncertain = false;
                 std::string uncertainty_detail;
                 for (const ProcessInfo& item : items) {
-                    const bool launcher = process_name_is(item.name, L"destiny2launcher.exe");
-                    const bool game = process_name_is(item.name, L"destiny2.exe");
+                    const bool launcher = process_name_is(item.name, L"MarathonLauncher.exe");
+                    const bool game = process_name_is(item.name, L"Marathon.exe");
                     if (!launcher && !game) continue;
                     try {
                         UniqueHandle handle = open_query(item.pid);
@@ -281,13 +281,13 @@ std::optional<int> monitor(const HANDLE child, const DWORD child_pid, const fs::
                 }
                 previous = std::move(current);
                 if (!uncertain && candidate_uncertain) {
-                    log.info("named Destiny process candidates are verifiable again");
+                    log.info("named Marathon process candidates are verifiable again");
                 }
                 candidate_uncertain = uncertain;
                 if (uncertain) {
                     increment_saturated(candidate_uncertain_polls);
                     if (candidate_uncertain_polls == 1 || candidate_uncertain_polls % 20 == 0) {
-                        log.warn("a named Destiny process candidate could not be "
+                        log.warn("a named Marathon process candidate could not be "
                                  "verified for " +
                                  std::to_string(candidate_uncertain_polls) +
                                  " consecutive polls; retaining renderer protection: " +
@@ -317,10 +317,10 @@ std::optional<int> monitor(const HANDLE child, const DWORD child_pid, const fs::
         Sleep(500);
     }
     try {
-        log.info("both Destiny process categories closed; original launcher pid=" +
+        log.info("both Marathon process categories closed; original launcher pid=" +
                  std::to_string(child_pid));
     } catch (...) {
-        log.info("both Destiny process categories closed");
+        log.info("both Marathon process categories closed");
     }
     return child_status;
 }

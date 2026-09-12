@@ -28,9 +28,9 @@ namespace steamfix::app {
 namespace {
 
 constexpr wchar_t invalid_message[] =
-    L"D2SteamFix was not started by Steam with a Destiny 2 command.\n\n"
+    L"MS2SteamFix was not started by Steam with a Marathon command.\n\n"
     L"This program must be run from Steam using launch options:\n"
-    L"\"C:\\path\\to\\steamfix.exe\" %command%\n\nDestiny 2 was not started.";
+    L"\"C:\\path\\to\\steamfix.exe\" %command%\n\nMarathon was not started.";
 
 struct Invocation {
     fs::path launcher;
@@ -104,7 +104,7 @@ fs::path current_directory() {
 
 UniqueHandle session_mutex() {
     SetLastError(ERROR_SUCCESS);
-    HANDLE raw = CreateMutexW(nullptr, TRUE, L"Global\\D2SteamFix-1085660");
+    HANDLE raw = CreateMutexW(nullptr, TRUE, L"Global\\MS2SteamFix-3065800");
     if (raw == nullptr) {
         throw AppError(ExitCode::existing_session, "single-instance check", windows_error());
     }
@@ -112,7 +112,7 @@ UniqueHandle session_mutex() {
     UniqueHandle handle(raw);
     if (already_exists) {
         throw AppError(ExitCode::existing_session, "single-instance check",
-                       "another D2SteamFix session is already active on this computer");
+                       "another MS2SteamFix session is already active on this computer");
     }
     return handle;
 }
@@ -183,7 +183,7 @@ ChildProcess launch(const Invocation& invocation) {
 
 std::string existing_processes(const std::vector<std::pair<DWORD, std::wstring>>& existing) {
     std::ostringstream output;
-    output << "verified Destiny processes already running: [";
+    output << "verified Marathon processes already running: [";
     for (size_t index = 0; index < existing.size(); ++index) {
         if (index != 0) output << ", ";
         output << '(' << existing[index].first << ", " << narrow(existing[index].second) << ')';
@@ -199,7 +199,7 @@ int run(const Logger& log, const std::vector<std::wstring>& forwarded, const fs:
                     L", SteamGameId=" + optional_id(game_id)));
     const Invocation invocation = validate_invocation(forwarded, app_id, game_id);
     log.info("validated launcher path: " + display_path(invocation.launcher));
-    log.info("relevant App ID: 1085660");
+    log.info("relevant App ID: 3065800");
     check_overlay();
 
     std::vector<std::pair<DWORD, std::wstring>> existing;
@@ -247,7 +247,7 @@ int run(const Logger& log, const std::vector<std::wstring>& forwarded, const fs:
         check_overlay();
         ChildProcess child = launch(invocation);
         launcher_started = true;
-        log.info("launched destiny2launcher.exe; beginning fail-closed process monitoring");
+        log.info("launched MarathonLauncher.exe; beginning fail-closed process monitoring");
         exit_status = process::monitor(child.process.get(), child.pid, invocation.game_dir, log);
     } catch (...) {
         session_error = std::current_exception();
@@ -298,18 +298,18 @@ int run(const Logger& log, const std::vector<std::wstring>& forwarded, const fs:
 std::wstring failure_message(const AppError& error) {
     if (error.code() == ExitCode::invalid_invocation) return widen(error.detail());
     const wchar_t* launch_status = error.launcher_started()
-        ? L"The Destiny 2 launcher was started." : L"Destiny 2 was not started.";
-    return L"D2SteamFix failed during " + widen(error.stage()) + L":\n\n" + widen(error.detail()) +
+        ? L"The Marathon launcher was started." : L"Marathon was not started.";
+    return L"MS2SteamFix failed during " + widen(error.stage()) + L":\n\n" + widen(error.detail()) +
            L"\n\nSee steamfix.log in the current working directory.\n\n" + launch_status;
 }
 
 bool validate_app_ids(const std::optional<std::wstring>& app_id,
                       const std::optional<std::wstring>& game_id) noexcept {
     const auto invalid = [](const std::optional<std::wstring>& value) {
-        return value && *value != L"1085660";
+        return value && *value != L"3065800";
     };
     if (invalid(app_id) || invalid(game_id)) return false;
-    return (app_id && *app_id == L"1085660") || (game_id && *game_id == L"1085660");
+    return (app_id && *app_id == L"3065800") || (game_id && *game_id == L"3065800");
 }
 
 Invocation validate_invocation(const std::vector<std::wstring>& args,
@@ -319,9 +319,9 @@ Invocation validate_invocation(const std::vector<std::wstring>& args,
         throw AppError(ExitCode::invalid_invocation, "invalid invocation", narrow(invalid_message));
     }
     const fs::path raw(args.front());
-    if (!paths::name_is(raw, L"destiny2launcher.exe")) {
+    if (!paths::name_is(raw, L"MarathonLauncher.exe")) {
         throw AppError(ExitCode::validation, "command validation",
-                       "the forwarded executable must be destiny2launcher.exe");
+                       "the forwarded executable must be MarathonLauncher.exe");
     }
     fs::path launcher;
     try {
@@ -332,20 +332,20 @@ Invocation validate_invocation(const std::vector<std::wstring>& args,
     }
     require_regular_file(launcher, ExitCode::validation, "command validation",
                          "launcher is not an existing regular file");
-    if (!paths::name_is(launcher, L"destiny2launcher.exe")) {
+    if (!paths::name_is(launcher, L"MarathonLauncher.exe")) {
         throw AppError(ExitCode::validation, "command validation",
-                       "launcher is not a regular destiny2launcher.exe file");
+                       "launcher is not a regular MarathonLauncher.exe file");
     }
     const fs::path game_dir = launcher.parent_path();
     if (game_dir.empty()) {
         throw AppError(ExitCode::validation, "command validation", "launcher has no containing directory");
     }
-    require_regular_file(game_dir / L"destiny2.exe", ExitCode::validation,
+    require_regular_file(game_dir / L"Marathon.exe", ExitCode::validation,
                          "command validation",
-                         "destiny2.exe is not a regular file beside the launcher");
+                         "Marathon.exe is not a regular file beside the launcher");
     if (!validate_app_ids(app_id, game_id)) {
         throw AppError(ExitCode::validation, "Steam App ID validation",
-                       "SteamAppId and SteamGameId must be absent or 1085660, and at least one must equal 1085660");
+                       "SteamAppId and SteamGameId must be absent or 3065800, and at least one must equal 3065800");
     }
     return {launcher, game_dir, std::vector<std::wstring>(args.begin() + 1, args.end())};
 }
@@ -357,25 +357,25 @@ int entry() {
     try {
         executable = current_executable();
     } catch (const std::exception& error) {
-        ui::error(L"D2SteamFix could not determine its executable path: " + widen(error.what()) +
-                  L"\n\nDestiny 2 was not started.");
+        ui::error(L"MS2SteamFix could not determine its executable path: " + widen(error.what()) +
+                  L"\n\nMarathon was not started.");
         return static_cast<int>(ExitCode::internal);
     }
     fs::path cwd;
     try {
         cwd = current_directory();
     } catch (const std::exception& error) {
-        ui::error(L"D2SteamFix could not determine the current working directory for its log and "
-                  L"recovery files.\n\n" + widen(error.what()) + L"\n\nDestiny 2 was not started.");
+        ui::error(L"MS2SteamFix could not determine the current working directory for its log and "
+                  L"recovery files.\n\n" + widen(error.what()) + L"\n\nMarathon was not started.");
         return static_cast<int>(ExitCode::log_initialization);
     }
     std::unique_ptr<Logger> log;
     try {
         log = std::make_unique<Logger>(cwd / L"steamfix.log");
     } catch (const std::exception& error) {
-        ui::error(L"D2SteamFix could not open steamfix.log in the current working directory. "
+        ui::error(L"MS2SteamFix could not open steamfix.log in the current working directory. "
                   L"Ensure the working directory is writable.\n\n" + widen(error.what()) +
-                  L"\n\nDestiny 2 was not started.");
+                  L"\n\nMarathon was not started.");
         return static_cast<int>(ExitCode::log_initialization);
     }
     log->info("startup; wrapper path: " + display_path(executable) +
@@ -385,7 +385,7 @@ int entry() {
         const UniqueHandle mutex = session_mutex();
         if (process_is_elevated()) {
             throw AppError(ExitCode::validation, "privilege check",
-                           "D2SteamFix must not run as administrator; launch Steam and D2SteamFix normally");
+                           "MS2SteamFix must not run as administrator; launch Steam and MS2SteamFix normally");
         }
         const fs::path recovery = acl::recovery_path(cwd);
         log->info("ACL recovery state path: " + display_path(recovery));
@@ -396,21 +396,21 @@ int entry() {
                            display_path(recovery) + ": " + recovery_error.message());
         }
         if (recovery_exists) {
-            ui::info(L"D2SteamFix found interrupted permission recovery state.\n\n"
-                     L"Close Destiny 2 before continuing. After you select OK, D2SteamFix will "
-                     L"require 30 seconds with no Destiny process before restoring permissions.");
+            ui::info(L"MS2SteamFix found interrupted permission recovery state.\n\n"
+                     L"Close Marathon before continuing. After you select OK, MS2SteamFix will "
+                     L"require 30 seconds with no Marathon process before restoring permissions.");
             try {
-                process::wait_for_destiny_quiescence(*log);
+                process::wait_for_marathon_quiescence(*log);
             } catch (const std::exception& error) {
                 throw AppError(ExitCode::overlay_protection, "ACL recovery safety check",
-                               "could not establish that Destiny is closed; recovery state was preserved: " +
+                               "could not establish that Marathon is closed; recovery state was preserved: " +
                                std::string(error.what()));
             }
         }
         const bool recovered = acl::recover_pending(recovery, *log);
         if (recovered && forwarded.empty()) {
             throw AppError(ExitCode::invalid_invocation, "invalid invocation",
-                           narrow(L"D2SteamFix restored renderer permissions left by an interrupted session.\n\n") +
+                           narrow(L"MS2SteamFix restored renderer permissions left by an interrupted session.\n\n") +
                            narrow(invalid_message));
         }
         const int code = run(*log, forwarded, recovery);
@@ -423,13 +423,13 @@ int entry() {
         return static_cast<int>(error.code());
     } catch (const std::exception& error) {
         log->error("unexpected internal failure: " + std::string(error.what()) + "; helper exit code=19");
-        ui::error(L"D2SteamFix encountered an unexpected internal failure.\n\nSee steamfix.log in the "
-                  L"current working directory.\n\nDestiny 2 was not started.");
+        ui::error(L"MS2SteamFix encountered an unexpected internal failure.\n\nSee steamfix.log in the "
+                  L"current working directory.\n\nMarathon was not started.");
         return static_cast<int>(ExitCode::internal);
     } catch (...) {
         log->error("unexpected internal failure; helper exit code=19");
-        ui::error(L"D2SteamFix encountered an unexpected internal failure.\n\nSee steamfix.log in the "
-                  L"current working directory.\n\nDestiny 2 was not started.");
+        ui::error(L"MS2SteamFix encountered an unexpected internal failure.\n\nSee steamfix.log in the "
+                  L"current working directory.\n\nMarathon was not started.");
         return static_cast<int>(ExitCode::internal);
     }
 }

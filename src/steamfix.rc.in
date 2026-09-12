@@ -17,11 +17,11 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "D2SteamFix"
+            VALUE "FileDescription", "MS2SteamFix"
             VALUE "FileVersion", "@PROJECT_VERSION@"
             VALUE "InternalName", "steamfix.exe"
             VALUE "OriginalFilename", "steamfix.exe"
-            VALUE "ProductName", "D2SteamFix"
+            VALUE "ProductName", "MS2SteamFix"
             VALUE "ProductVersion", "@PROJECT_VERSION@"
         END
     END

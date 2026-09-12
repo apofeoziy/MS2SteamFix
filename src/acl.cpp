@@ -552,7 +552,7 @@ RestorationState restoration_state(const Backup& backup, const HANDLE handle) {
         return RestorationState::denied;
     }
     throw std::runtime_error(
-        "renderer DACL changed outside D2SteamFix; recovery state was preserved");
+        "renderer DACL changed outside MS2SteamFix; recovery state was preserved");
 }
 
 void verify_denied(const Backup& backup, const HANDLE handle) {
@@ -643,7 +643,7 @@ std::vector<std::byte> protect_state(const std::span<const std::byte> plaintext)
     DATA_BLOB input{static_cast<DWORD>(plaintext.size()),
                     reinterpret_cast<BYTE*>(const_cast<std::byte*>(plaintext.data()))};
     DATA_BLOB protected_data{};
-    if (!CryptProtectData(&input, L"D2SteamFix ACL recovery", nullptr, nullptr, nullptr,
+    if (!CryptProtectData(&input, L"MS2SteamFix ACL recovery", nullptr, nullptr, nullptr,
                           CRYPTPROTECT_UI_FORBIDDEN, &protected_data)) {
         throw_win32(GetLastError());
     }

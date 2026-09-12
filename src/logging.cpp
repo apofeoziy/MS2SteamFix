@@ -58,9 +58,9 @@ void Logger::write(const std::string_view severity, const std::string_view messa
             start = end + 1;
         } while (start <= message.size());
         file_.flush();
-        if (!file_) OutputDebugStringW(L"D2SteamFix: writing steamfix.log failed.\n");
+        if (!file_) OutputDebugStringW(L"MS2SteamFix: writing steamfix.log failed.\n");
     } catch (...) {
-        OutputDebugStringW(L"D2SteamFix: writing steamfix.log failed.\n");
+        OutputDebugStringW(L"MS2SteamFix: writing steamfix.log failed.\n");
     }
 }
 

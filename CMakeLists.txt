@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(D2SteamFix VERSION 1.0.0 LANGUAGES CXX)
+project(MS2SteamFix VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if(NOT WIN32 OR NOT MSVC)
-    message(FATAL_ERROR "D2SteamFix requires 64-bit Windows and Microsoft Visual C++.")
+    message(FATAL_ERROR "MS2SteamFix requires 64-bit Windows and Microsoft Visual C++.")
 endif()
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-    message(FATAL_ERROR "D2SteamFix supports only 64-bit Windows.")
+    message(FATAL_ERROR "MS2SteamFix supports only 64-bit Windows.")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/steamfix.rc.in"

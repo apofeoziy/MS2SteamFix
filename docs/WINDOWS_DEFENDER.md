@@ -1,6 +1,6 @@
 # Windows Defender
 
-Microsoft has confirmed that the D2SteamFix detection was a false positive and has removed it. If Windows Defender still reports the old detection, clear the cached definitions and download the latest malware definitions:
+If Windows Defender flags MS2SteamFix as a false positive, clear the cached definitions and download the latest malware definitions:
 
 1. Open **Command Prompt** as an administrator.
 2. Change to the Windows Defender directory:
