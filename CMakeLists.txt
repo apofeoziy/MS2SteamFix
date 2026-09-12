@@ -43,11 +43,12 @@ target_compile_options(steamfix PRIVATE
 )
 target_link_options(steamfix PRIVATE
     /guard:cf /guard:ehcont /CETCOMPAT /DYNAMICBASE /HIGHENTROPYVA /NXCOMPAT
+    /DELAYLOAD:advapi32.dll /DELAYLOAD:crypt32.dll /DELAYLOAD:ole32.dll /DELAYLOAD:shell32.dll /DELAYLOAD:user32.dll
     $<$<CONFIG:Release>:/DEBUG:FULL>
     $<$<CONFIG:Release>:/Brepro>
     $<$<CONFIG:Release>:/PDBALTPATH:steamfix.pdb>
 )
-target_link_libraries(steamfix PRIVATE advapi32 crypt32 ole32 shell32 user32)
+target_link_libraries(steamfix PRIVATE advapi32 crypt32 ole32 shell32 user32 delayimp)
 set_target_properties(steamfix PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 
 install(TARGETS steamfix RUNTIME DESTINATION .)

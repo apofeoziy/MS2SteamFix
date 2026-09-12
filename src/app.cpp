@@ -142,19 +142,17 @@ void require_regular_file(const fs::path& path, const ExitCode code, const char*
     if (!regular) throw AppError(code, stage, missing_detail);
 }
 
-void check_overlay() {
+void check_overlay(const Logger& log) {
     try {
         const std::optional<fs::path> loaded = overlay::loaded_renderer();
         if (loaded) {
-            throw AppError(ExitCode::overlay_loaded, "self overlay check",
-                           "Steam injected " + display_path(*loaded) +
-                           " before protection was established");
+            log.warn("self overlay check: Steam injected " + display_path(*loaded) +
+                     " into MS2SteamFix. This is usually harmless, continuing.");
         }
     } catch (const AppError&) {
         throw;
     } catch (const std::exception& error) {
-        throw AppError(ExitCode::overlay_loaded, "self overlay check",
-                       "could not safely enumerate wrapper modules: " + std::string(error.what()));
+        log.warn("could not safely enumerate wrapper modules: " + std::string(error.what()));
     }
 }
 
@@ -200,7 +198,7 @@ int run(const Logger& log, const std::vector<std::wstring>& forwarded, const fs:
     const Invocation invocation = validate_invocation(forwarded, app_id, game_id);
     log.info("validated launcher path: " + display_path(invocation.launcher));
     log.info("relevant App ID: 3065800");
-    check_overlay();
+    check_overlay(log);
 
     std::vector<std::pair<DWORD, std::wstring>> existing;
     try {
@@ -244,7 +242,7 @@ int run(const Logger& log, const std::vector<std::wstring>& forwarded, const fs:
     std::exception_ptr session_error;
     std::optional<int> exit_status;
     try {
-        check_overlay();
+        check_overlay(log);
         ChildProcess child = launch(invocation);
         launcher_started = true;
         log.info("launched MarathonLauncher.exe; beginning fail-closed process monitoring");
